@@ -9,10 +9,10 @@ class State:
     cycle = 1
     R = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-    def __init__(self, opcodes, dataval, addrs, arg1, arg2, arg3, numInstructs, opcodeStr, arg1Str, arg2Str, arg3Str):
-        self.opcode = opcodes
+    def __init__(self, opcode, dataval, address, arg1, arg2, arg3, numInstructs, opcodeStr, arg1Str, arg2Str, arg3Str):
+        self.opcode = opcode
         self.dataval = dataval
-        self.address = addrs
+        self.address = address
         self.numInstructions = numInstructs
         self.arg1 = arg1
         self.arg2 = arg2
@@ -36,36 +36,38 @@ class State:
 
         with open(outputFileName + "_sim.txt", "a") as outFile:
 
-            i = self.getIndexOfMemAddress(self.PC)
+            j = self.getIndexOfMemAddress(self.PC)
             outFile.write("====================\n")
             outFile.write(
-                "cycle:" + str(self.cycle) + "\t" + str(self.PC) + "\t" + self.opcodeStr[i] + self.arg1Str[i]
-                + self.arg2Str[i] + self.arg3Str[i] + "\n")
+                "cycle:" + str(self.cycle) + "\t" + str(self.PC) + "\t" + self.opcodeStr[j] + "\t" + self.arg1Str[j]
+                + self.arg2Str[j] + self.arg3Str[j] + "\n")
             outFile.write("\n")
             outFile.write("registers:\n")
-            outStr = "r00:"
+            outStr = "r00:\t"
             for i in range(0, 8):
                 outStr = outStr + "\t" + str(self.R[i])
-
+            outFile.write(outStr)
             outFile.write("\n")
-            outStr = "r08:"
+
+            outStr = "r08:\t"
             for i in range(8, 16):
                 outStr = outStr + "\t" + str(self.R[i])
-
+            outFile.write(outStr)
             outFile.write("\n")
-            outStr = "r16:"
+
+            outStr = "r16:\t"
             for i in range(16, 24):
                 outStr = outStr + "\t" + str(self.R[i])
-
+            outFile.write(outStr)
             outFile.write("\n")
-            outStr = "r24:"
+
+            outStr = "r24:\t"
             for i in range(24, 32):
                 outStr = outStr + "\t" + str(self.R[i])
+            outFile.write(outStr)
 
-            outFile.write("\n")
-            outFile.write("\n")
+            outFile.write("\n\n")
             outFile.write("data:\n")
-
             for i in range(len(self.dataval)):
 
                 if i % 8 == 0 and i != 0 or i == len(self.dataval):
@@ -166,7 +168,7 @@ class Simulator:
                 continue  # go back to top
 
             elif self.opcode[i] == 1692:  # ASR OPCODE
-                self.arg3[i] = self.arg1[i] / (2 * self.arg2[i])
+                self.arg3[i] = self.arg1[i] / (2*self.arg2[i])
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
@@ -192,9 +194,6 @@ class Simulator:
                 armState.incrementPC()
                 armState.cycle += 1
                 continue  # go back to top
-
-            # elif self.opcode[i] == 1984:  # STUR OPCODE
-
 
             elif 1440 <= self.opcode[i] <= 1447:  # CBZ OPCODE RANGE
                 if self.arg2[i] == 0:
@@ -244,7 +243,7 @@ class Simulator:
 
                 print("IN SIM -- UNKNOWN INSTRUCTION ------------------- !!!!")
 
-            armState.printState()
-            armState.PC = jumpAddr
-            armState.incrementPC()
-            armState.cycle += 1
+                armState.printState()
+                armState.PC = jumpAddr
+                armState.incrementPC()
+                armState.cycle += 1
