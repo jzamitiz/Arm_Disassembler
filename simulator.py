@@ -2,12 +2,11 @@ import sys
 from helpers import SetUp
 import masking_constants as MASKs
 
-
 class State:
     dataval = []
     PC = 96
     cycle = 1
-    R = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    R = [100, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
     def __init__(self, opcodes, dataval, addrs, arg1, arg2, arg3, numInstructs, opcodeStr, arg1Str, arg2Str, arg3Str):
         self.opcode = opcodes
@@ -234,14 +233,24 @@ class Simulator:
                     continue  # go back to top
 
             elif 1940 <= self.opcode[i] <= 1943:  # MOVK OPCODE RANGE
-                armState.R[self.arg3[i]] = armState.R[self.arg2[i]] << self.arg1[i]
+                self.arg2[i] = self.arg2[i] & 0xFFFFFFFF#16b' -> 32b' w/ leading 0's
+                self.arg3[i] = self.arg3[i] & 0xFFFFFFFF
+                if self.arg1[i] == 0:
+                    armState.R[self.arg3[i]] = self.arg2[i]
+                elif self.arg1[i] == 1:
+                    armState.R[self.arg3[i]] = self.arg3[i] & 0x0000FFFF
+                    armState.R[self.arg3[i]] = armState.R[self.arg3[i]] ^ (self.arg2[i] * self.arg1[i])
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
                 continue  # go back to top
 
             elif 1684 <= self.opcode[i] <= 1687:  # MOVZ OPCODE RANGE
-                armState.R[self.arg3[i]] = armState.R[self.arg2[i]] << self.arg1[i]
+                armState.R[self.arg3[i]] = 0 #armState.R[self.arg2[i]] << self.arg1[i]
+                if self.arg1[i] == 0:
+                    armState.R[self.arg3[i]] = self.arg2[i]
+                else:
+                    armState.R[self.arg3[i]] = self.arg2[i] * self.arg1[i] * 2
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
