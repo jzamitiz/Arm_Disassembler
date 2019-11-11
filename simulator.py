@@ -4,7 +4,7 @@ import masking_constants as MASKs
 
 
 class State:
-    dataval = []
+    # dataval = []
     PC = 96
     cycle = 1
     R = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
@@ -28,12 +28,12 @@ class State:
 
     def incrementPC(self):
         self.PC += 4
+        self.address.append(self.address[len(self.address) - 1] + 4)
         return self.PC
 
     def printState(self):
 
         outputFileName = SetUp.get_output_filename()
-
         with open(outputFileName + "_sim.txt", "a") as outFile:
 
             i = self.getIndexOfMemAddress(self.PC)
@@ -155,7 +155,7 @@ class Simulator:
                 armState.cycle += 1
                 continue  # go back to top
 
-            elif self.opcode[i] == 1691:  # LSL OPCODE
+            elif self.opcode[i] == 1691:  # LSL OPCODE mask
                 armState.R[self.arg3[i]] = armState.R[self.arg1[i]] << armState.R[self.arg2[i]]
                 armState.printState()
                 armState.incrementPC()
@@ -170,7 +170,7 @@ class Simulator:
                 continue  # go back to top
 
             elif self.opcode[i] == 1692:  # ASR OPCODE
-                armState.R[self.arg3[i]] = armState.R[self.arg1[i]] / (2 * self.arg2[i])
+                armState.R[self.arg3[i]] = armState.R[self.arg1[i]] >> self.arg2[i]
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
@@ -199,7 +199,40 @@ class Simulator:
                 continue  # go back to top
 
             elif self.opcode[i] == 1984:  # STUR OPCODE
-                armState.dataval[self.arg1[i]] = armState.R[self.arg3[i]]
+                calculated_address = armState.R[self.arg2[i]] + (self.arg1[i] * 4)
+                initial_mem_address = 96 + (self.numInstructs * 4)
+                index_in_mem = (calculated_address - initial_mem_address) // 4
+                if index_in_mem < 0:
+                    print("Not within range of memory!")
+                    exit(-1)
+                elif index_in_mem < len(self.dataval):
+                    self.dataval[index_in_mem] = armState.R[self.arg3[i]]
+                else:
+                    while (len(self.dataval)) < index_in_mem:
+                        self.dataval.append(0)
+                        self.address.append(self.address[len(self.address) - 1] + 4)
+                    self.dataval.append(armState.R[self.arg3[i]])
+
+
+                armState.printState()
+                armState.incrementPC()
+                armState.cycle += 1
+                continue  # go back to top
+
+            elif self.opcode[i] == 1986:  # LDUR OPCODE
+                calculated_address = armState.R[self.arg2[i]] + (self.arg1[i] * 4)
+                initial_mem_address = 96 + (self.numInstructs * 4)
+                index_in_mem = (calculated_address - initial_mem_address) // 4
+
+                if index_in_mem < 0:
+                    print("Not within range of memory!")
+                    exit(-1)
+                elif index_in_mem < len(self.dataval):
+                    armState.R[self.arg3[i]] = self.dataval[index_in_mem]
+                else:
+                    print("Not within range of memory!")
+                    exit(-1)
+
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
@@ -234,14 +267,21 @@ class Simulator:
                     continue  # go back to top
 
             elif 1940 <= self.opcode[i] <= 1943:  # MOVK OPCODE RANGE
-                armState.R[self.arg3[i]] = armState.R[self.arg2[i]] << self.arg1[i]
+                mask = 0xFFFF << self.arg1[i]
+                armState.R[self.arg3[i]] = self.arg3[i] & mask  # Rd & w/ mask
+                armState.R[self.arg3[i]] = self.arg3[i] ^ mask
+                armState.R[self.arg3[i]] = self.arg3[i] | (self.arg2[i] << self.arg1[i])
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
                 continue  # go back to top
 
             elif 1684 <= self.opcode[i] <= 1687:  # MOVZ OPCODE RANGE
-                armState.R[self.arg3[i]] = armState.R[self.arg2[i]] << self.arg1[i]
+                armState.R[self.arg3[i]] = 0  # armState.R[self.arg2[i]] << self.arg1[i]
+                if self.arg1[i] == 0:
+                    armState.R[self.arg3[i]] = self.arg2[i]
+                else:
+                    armState.R[self.arg3[i]] = self.arg2[i] * self.arg1[i] * 2
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
