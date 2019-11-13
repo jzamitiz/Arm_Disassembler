@@ -215,6 +215,10 @@ class Simulator:
                         self.dataval.append(0)
                         self.address.append(self.address[len(self.address) - 1] + 4)
                     self.dataval.append(armState.R[self.arg3[i]])
+                    if index_in_mem % 8 != 0:
+                        add_zero_amt = 7 - (index_in_mem % 8)
+                        for i in range(add_zero_amt):
+                            self.dataval.append(0)
 
                 armState.printState()
                 armState.incrementPC()
@@ -241,7 +245,7 @@ class Simulator:
                 continue  # go back to top
 
             elif 1440 <= self.opcode[i] <= 1447:  # CBZ OPCODE RANGE
-                if self.arg2[i] == 0:
+                if armState.R[self.arg2[i]] == 0:
                     armState.printState()
                     jumpAddr += ((self.arg1[i] * 4) - 4)
                     armState.PC = jumpAddr
@@ -255,7 +259,7 @@ class Simulator:
                     continue  # go back to top
 
             elif 1448 <= self.opcode[i] <= 1455:  # CBNZ OPCODE RANGE
-                if self.arg2[i] != 0:
+                if armState.R[self.arg2[i]] != 0:
                     armState.printState()
                     jumpAddr += ((self.arg1[i] * 4) - 4)
                     armState.PC = jumpAddr
