@@ -163,7 +163,10 @@ class Simulator:
                 continue  # go back to top
 
             elif self.opcode[i] == 1690:  # LSR OPCODE
-                armState.R[self.arg3[i]] = armState.R[self.arg1[i]] >> armState.R[self.arg2[i]]
+                # armState.R[self.arg3[i]] = armState.R[self.arg1[i]] >> armState.R[self.arg2[i]]
+                asr_mask = MASKs.asrMask >> self.arg2[i]
+                rn_shifted = armState.R[self.arg1[i]] >> self.arg2[i]
+                armState.R[self.arg3[i]] = rn_shifted & asr_mask
                 armState.printState()
                 armState.incrementPC()
                 armState.cycle += 1
@@ -212,7 +215,6 @@ class Simulator:
                         self.dataval.append(0)
                         self.address.append(self.address[len(self.address) - 1] + 4)
                     self.dataval.append(armState.R[self.arg3[i]])
-
 
                 armState.printState()
                 armState.incrementPC()

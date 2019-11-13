@@ -10,3 +10,4 @@ addrMask = 0x1FF000 # ARM address for ld and st
 addr2Mask = 0xFFFFE0 # addr for CB format
 imsftMask = 0x600000 # shift for IM format
 imdataMask = 0x1FFFE0 #data for IM type
+asrMask = 0xFFFFFFFF
