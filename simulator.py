@@ -208,11 +208,14 @@ class Simulator:
                 elif index_in_mem < len(self.dataval):
                     self.dataval[index_in_mem] = armState.R[self.arg3[i]]
                 else:
-                    while (len(self.dataval)) < index_in_mem:
+                    while len(self.dataval) < (index_in_mem):
                         self.dataval.append(0)
                         self.address.append(self.address[len(self.address) - 1] + 4)
                     self.dataval.append(armState.R[self.arg3[i]])
-
+                    if index_in_mem % 8 != 0:
+                        add_zero_amt = 7 - (index_in_mem % 8)
+                        for i in range(add_zero_amt):
+                            self.dataval.append(0)
 
                 armState.printState()
                 armState.incrementPC()
